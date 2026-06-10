@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import google.genai  # Use explicit full namespace import
+import google as genai # Use explicit full namespace import
 from PIL import Image
 import io
 import json  
