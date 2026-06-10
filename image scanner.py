@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from google import genai
+import google as genai
 from PIL import Image
 import io
 
@@ -12,7 +12,7 @@ st.title("📦 AI Product Image Validator (Gemini Pro Vision)")
 
 api_key = st.text_input("Enter Gemini API Key")
 if api_key:
-    genai.configure(api_key=api_key)
+    client = genai.Client(api_key=api_key)
     model = genai.GenerativeModel("gemini-1.5-pro")
 
 # -----------------------------
