@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import google as genai  
-from google import types  # 1. Added types for safe configurations
 from PIL import Image
 import io
 import json  
