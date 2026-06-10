@@ -1,20 +1,22 @@
 import streamlit as st
 import pandas as pd
-import google.genai as genai
+import google.genai as genai  # Fixed import
 from PIL import Image
 import io
-import json
+import json  # Added for safe JSON parsing
 
 # -----------------------------
 # CONFIG
 # -----------------------------
 st.set_page_config(page_title="Gemini Product Checker", layout="wide")
-st.title("📦 AI Product Image Validator (Gemini Pro Vision)")
+st.title("📦 AI Product Image Validator")
 
-api_key = st.text_input("Enter Gemini API Key")
+api_key = st.text_input("Enter Gemini API Key", type="password")
+
+# Initialize client if API key is provided
+client = None
 if api_key:
     client = genai.Client(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-pro")
 
 # -----------------------------
 # Upload files
@@ -29,12 +31,10 @@ image_files = st.file_uploader(
 # -----------------------------
 # Gemini extraction function
 # -----------------------------
-def extract_with_gemini(image):
+def extract_with_gemini(client, image):
     prompt = """
     You are a product validation assistant.
-
     Extract ALL product information from this image in JSON format:
-
     {
       "product_name": "",
       "gpu": "",
@@ -43,17 +43,21 @@ def extract_with_gemini(image):
       "storage": "",
       "price": ""
     }
-
     If a field is missing, put null.
     """
-
-    response = model.generate_content([prompt, image])
+    
+    # Updated to use the correct modern SDK client syntax and structural JSON output
+    response = client.models.generate_content(
+        model="gemini-1.5-pro",
+        contents=[prompt, image],
+        config={"response_mime_type": "application/json"}
+    )
     return response.text
 
 # -----------------------------
 # Main logic
 # -----------------------------
-if api_key and excel_file and image_files:
+if client and excel_file and image_files:
 
     df = pd.read_excel(excel_file)
     st.success("Excel loaded successfully!")
@@ -61,21 +65,18 @@ if api_key and excel_file and image_files:
     results = []
 
     for img_file in image_files:
-
         image = Image.open(img_file)
 
         with st.spinner(f"Analyzing {img_file.name}..."):
-            response = extract_with_gemini(image)
-
-        try:
-            extracted = eval(response.replace("```json", "").replace("```", ""))
-        except:
-            results.append([img_file.name, "FAIL", "Gemini parsing error", "-"])
-            continue
+            try:
+                response_text = extract_with_gemini(client, image)
+                extracted = json.loads(response_text) # Safely parse JSON
+            except Exception as e:
+                results.append([img_file.name, "FAIL", f"Gemini error/parsing failed: {e}", "-"])
+                continue
 
         # Find matching product
         matched = None
-
         for _, row in df.iterrows():
             if str(row["Model"]).lower() in str(extracted.get("product_name", "")).lower():
                 matched = row
@@ -117,5 +118,7 @@ if api_key and excel_file and image_files:
         "text/csv"
     )
 
+elif not api_key:
+    st.info("Please enter your Gemini API key to start.")
 else:
-    st.info("Upload Excel, images, and API key to start.")
+    st.info("Upload Excel sheet and images to start validation.")
