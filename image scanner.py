@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import google as genai  # Use explicit full namespace import
+import google as genai  
 from PIL import Image
 import io
 import json  
@@ -16,7 +16,7 @@ api_key = st.text_input("Enter Gemini API Key", type="password")
 # Initialize client using absolute full path to prevent Name/Attribute errors
 client = None
 if api_key:
-    client = genai.Client(api_key=api_key)
+    client = genai.genai.Client(api_key=api_key)
 
 # -----------------------------
 # Upload files
