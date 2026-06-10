@@ -10,7 +10,7 @@ import io
 st.set_page_config(page_title="Gemini Product Checker", layout="wide")
 st.title("📦 AI Product Image Validator (Gemini Pro Vision)")
 
-api_key = st.text_input("api_key = st.text_input(" Enter Gemini API Key")
+api_key = st.text_input("api_key = st.text_input("Enter Gemini API Key")
 ")
 if api_key:
     genai.configure(api_key=api_key)
