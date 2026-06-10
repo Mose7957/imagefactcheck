@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import google as genai
+from google import genai
 from PIL import Image
 import io
 import json  
