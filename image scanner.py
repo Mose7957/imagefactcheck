@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
-import google as genai  # Fixed import
+import google.genai as genai  
+from google.genai import types  # 1. Added types for safe configurations
 from PIL import Image
 import io
-import json  # Added for safe JSON parsing
+import json  
 
 # -----------------------------
 # CONFIG
@@ -46,11 +47,13 @@ def extract_with_gemini(client, image):
     If a field is missing, put null.
     """
     
-    # Updated to use the correct modern SDK client syntax and structural JSON output
+    # 2. Changed to explicit GenerateContentConfig class to prevent AttributeErrors
     response = client.models.generate_content(
         model="gemini-1.5-pro",
         contents=[prompt, image],
-        config={"response_mime_type": "application/json"}
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
     )
     return response.text
 
@@ -70,7 +73,13 @@ if client and excel_file and image_files:
         with st.spinner(f"Analyzing {img_file.name}..."):
             try:
                 response_text = extract_with_gemini(client, image)
-                extracted = json.loads(response_text) # Safely parse JSON
+                extracted = json.loads(response_text) 
+                
+                # 3. Guard against cases where Gemini returns an array instead of an object
+                if not isinstance(extracted, dict):
+                    results.append([img_file.name, "FAIL", "Gemini did not return a valid JSON object", "-"])
+                    continue
+                    
             except Exception as e:
                 results.append([img_file.name, "FAIL", f"Gemini error/parsing failed: {e}", "-"])
                 continue
