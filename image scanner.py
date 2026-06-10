@@ -16,7 +16,7 @@ api_key = st.text_input("Enter Gemini API Key", type="password")
 # Initialize client if API key is provided
 client = None
 if api_key:
-    client = Client(api_key=api_key)
+    client = google.genai.Client(api_key=api_key)
 
 # -----------------------------
 # Upload files
